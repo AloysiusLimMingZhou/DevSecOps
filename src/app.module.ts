@@ -31,12 +31,12 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         password: config.getOrThrow<string>('DB_PASSWORD'),
         database: config.getOrThrow<string>('DB_NAME'),
         entities: [Task],
-        synchronize: true
+        synchronize: false
       })
     }),
 
     ConfigModule.forRoot({
-      envFilePath: ['.env.test', '.env'],
+      envFilePath: ['.env', '.env.test'],
       isGlobal: true,
       validationSchema: configSchema
     })
