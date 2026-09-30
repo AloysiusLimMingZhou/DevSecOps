@@ -5,6 +5,7 @@ import { AppService } from './app.service.js';
 import { TasksModule } from './tasks/task.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Task } from './tasks/entity/task.entity.js';
+import { ConfigModule } from '@nestjs/config';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -27,6 +28,11 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       database: '',
       entities: [Task],
       synchronize: true
+    }),
+
+    ConfigModule.forRoot({
+      envFilePath: ['.env.test', '.env'],
+      isGlobal: true,
     })
   ],
   controllers: [AppController],
