@@ -9,7 +9,7 @@ import { UpdateTaskDto } from './dto/update-task.dto.js';
 describe('TasksController', () => {
   let tasksController: TasksController;
 
-  let service = {
+  let mockService = {
     getAllTasks: vi.fn(),
     getTaskById: vi.fn(),
     createTask: vi.fn(),
@@ -22,7 +22,7 @@ describe('TasksController', () => {
       controllers: [TasksController],
       providers: [{
         provide: TasksService,
-        useValue: service
+        useValue: mockService
       }],
     }).compile();
 
@@ -42,11 +42,11 @@ describe('TasksController', () => {
         {id: 2, title: 'title 2', text: 'text 2', completed: false, createdAt: new Date('2026-09-29T12:00:00Z'), updatedAt: new Date('2026-09-29T12:00:00Z')}
       ];
 
-      service.getAllTasks.mockResolvedValue(tasks);
+      mockService.getAllTasks.mockResolvedValue(tasks);
 
       const result:Task[] = await tasksController.getAllTask();
       expect(result).equal(tasks);
-      expect(service.getAllTasks).toHaveBeenCalledTimes(1);
+      expect(mockService.getAllTasks).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -54,19 +54,19 @@ describe('TasksController', () => {
     it('Expect controller should return 1 task from service', async () => {
       const task:Task = {id: 1, title: 'title 1', text: 'text 1', completed: false, createdAt: new Date('2026-09-29T12:00:00Z'), updatedAt: new Date('2026-09-29T12:00:00Z')};
 
-      service.getTaskById.mockResolvedValue(task);
+      mockService.getTaskById.mockResolvedValue(task);
 
       const result:Task = await tasksController.getTaskById(1);
 
       expect(result).equal(task);
-      expect(service.getTaskById).toHaveBeenCalledTimes(1);
+      expect(mockService.getTaskById).toHaveBeenCalledTimes(1);
     });
 
     it('Expect controller failed if no id found', async () => {
-      service.getTaskById.mockRejectedValue(new NotFoundException());
+      mockService.getTaskById.mockRejectedValue(new NotFoundException());
 
       await expect(tasksController.getTaskById(1)).rejects.throw(NotFoundException);
-      expect(service.getTaskById).toHaveBeenCalledTimes(1);
+      expect(mockService.getTaskById).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -86,12 +86,12 @@ describe('TasksController', () => {
         updatedAt: new Date('2026-09-29T12:00:00Z')
       };
 
-      service.createTask.mockResolvedValue(createdTask);
+      mockService.createTask.mockResolvedValue(createdTask);
 
       const result:Task = await tasksController.createTask(createTaskDto);
 
       expect(result).equal(createdTask);
-      expect(service.createTask).toHaveBeenCalledWith(createTaskDto);
+      expect(mockService.createTask).toHaveBeenCalledWith(createTaskDto);
     });
 
     it('Expect controller should return error when database is down', async () => {
@@ -100,10 +100,10 @@ describe('TasksController', () => {
         text: 'text 1'
       };
 
-      service.createTask.mockRejectedValue(new InternalServerErrorException());
+      mockService.createTask.mockRejectedValue(new InternalServerErrorException());
 
       await expect(tasksController.createTask(createTaskDto)).rejects.throw(InternalServerErrorException);
-      expect(service.createTask).toHaveBeenCalledWith(createTaskDto);
+      expect(mockService.createTask).toHaveBeenCalledWith(createTaskDto);
     });
   });
 
@@ -131,13 +131,13 @@ describe('TasksController', () => {
         updatedAt: new Date('2026-09-29T12:00:05Z')
       };
 
-      service.updateTask.mockResolvedValue(updatedTask);
+      mockService.updateTask.mockResolvedValue(updatedTask);
 
       const result:Task = await tasksController.updateTask(task.id, updateTaskDto);
 
       expect(result).equal(updatedTask);
-      expect(service.updateTask).toHaveBeenCalledWith(task.id, updateTaskDto);
-      expect(service.updateTask).toHaveBeenCalledTimes(1);
+      expect(mockService.updateTask).toHaveBeenCalledWith(task.id, updateTaskDto);
+      expect(mockService.updateTask).toHaveBeenCalledTimes(1);
     });
 
     it('Expect controller should return error if update fails', async () => {
@@ -145,11 +145,11 @@ describe('TasksController', () => {
         completed: true
       };
       
-      service.updateTask.mockRejectedValue(new NotFoundException());
+      mockService.updateTask.mockRejectedValue(new NotFoundException());
 
       await expect(tasksController.updateTask(1, updateTaskDto)).rejects.throw(NotFoundException);
-      expect(service.updateTask).toHaveBeenCalledWith(1, updateTaskDto);
-      expect(service.updateTask).toHaveBeenCalledTimes(1);
+      expect(mockService.updateTask).toHaveBeenCalledWith(1, updateTaskDto);
+      expect(mockService.updateTask).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -164,21 +164,21 @@ describe('TasksController', () => {
         updatedAt: new Date('2026-09-29T12:00:00Z')
       };
 
-      service.deleteTask.mockResolvedValue(undefined);
+      mockService.deleteTask.mockResolvedValue(undefined);
 
       const result:void = await tasksController.deleteTask(task.id);
 
       expect(result).equal(undefined);
-      expect(service.deleteTask).toHaveBeenCalledWith(task.id);
-      expect(service.deleteTask).toHaveBeenCalledTimes(1);
+      expect(mockService.deleteTask).toHaveBeenCalledWith(task.id);
+      expect(mockService.deleteTask).toHaveBeenCalledTimes(1);
     });
 
     it('Expect controller should return error if not found task', async () => {
-      service.deleteTask.mockRejectedValue(new NotFoundException());
+      mockService.deleteTask.mockRejectedValue(new NotFoundException());
 
       await expect(tasksController.deleteTask(1)).rejects.throw(NotFoundException);
-      expect(service.deleteTask).toHaveBeenCalledWith(1);
-      expect(service.deleteTask).toHaveBeenCalledTimes(1);
+      expect(mockService.deleteTask).toHaveBeenCalledWith(1);
+      expect(mockService.deleteTask).toHaveBeenCalledTimes(1);
     })
   });
 });

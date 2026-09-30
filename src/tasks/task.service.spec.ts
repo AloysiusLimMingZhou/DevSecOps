@@ -9,7 +9,7 @@ import { InternalServerErrorException, NotFoundException } from '@nestjs/common'
 describe('TasksService', () => {
   let tasksService: TasksService;
 
-  const repository = { // Create mock functions for repository TypeORM so that it doesnt interact with actual data, but u feed it with expected results to see if service logic runs correctly
+  const mockRepository = { // Create mock functions for repository TypeORM so that it doesnt interact with actual data, but u feed it with expected results to see if service logic runs correctly
     findOneBy: vi.fn(),
     find: vi.fn(),
     create: vi.fn(),
@@ -19,10 +19,13 @@ describe('TasksService', () => {
 
   beforeEach(async () => { // Reset mock data before each test 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [TasksService, {
-        provide: getRepositoryToken(Task),
-        useValue: repository
-      }],
+      providers: [
+        TasksService, 
+        {
+          provide: getRepositoryToken(Task),
+          useValue: mockRepository
+        }
+      ],
     }).compile();
 
     tasksService = module.get<TasksService>(TasksService);
@@ -41,11 +44,11 @@ describe('TasksService', () => {
         {id: 2, title: "Title 2", text: "Text 2", completed: true}
       ]
 
-      repository.find.mockResolvedValue(tasks); // Tell mock database func to return the mock data 
+      mockRepository.find.mockResolvedValue(tasks); // Tell mock database func to return the mock data 
 
       const results:Task[] = await tasksService.getAllTasks(); // Call actual tasksService function
 
-      expect(repository.find).toHaveBeenCalledWith({ // Ensure getAllTasks() uses createdAt: DESC order
+      expect(mockRepository.find).toHaveBeenCalledWith({ // Ensure getAllTasks() uses createdAt: DESC order
         order: {
           createdAt: 'DESC'
         }
@@ -64,21 +67,21 @@ describe('TasksService', () => {
         completed: false
       };
 
-      repository.findOneBy.mockResolvedValue(task); // Tell mock database to return the mock task data. mockResolvedValue() means return a Promise mock object
+      mockRepository.findOneBy.mockResolvedValue(task); // Tell mock database to return the mock task data. mockResolvedValue() means return a Promise mock object
 
       const result:Task = await tasksService.getTaskById(task.id); // Call actual tasksService function
 
-      expect(repository.findOneBy).toHaveBeenCalledWith({ id: task.id }); // Make sure repository TypeORM search for the task by id
+      expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: task.id }); // Make sure repository TypeORM search for the task by id
       expect(result).toEqual(task); // Make sure returned results same as mock data
     });
 
     it('It should throw an error when no task found', async () => {
       const task = null; // 
 
-      repository.findOneBy.mockResolvedValue(task);
+      mockRepository.findOneBy.mockResolvedValue(task);
 
       await expect(tasksService.getTaskById(1)).rejects.toThrow(NotFoundException);
-      expect(repository.findOneBy).toHaveBeenCalledWith({ id: 1 });
+      expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
     });
   });
 
@@ -98,20 +101,20 @@ describe('TasksService', () => {
         updatedAt: new Date('2026-09-29T12:00:00Z')
       }
 
-      repository.create.mockReturnValue({
+      mockRepository.create.mockReturnValue({
         ...createTaskDto,
         completed: false
       });
 
-      repository.save.mockResolvedValue(createdTask);
+      mockRepository.save.mockResolvedValue(createdTask);
 
       const result:Task = await tasksService.createTask(createTaskDto);
 
-      expect(repository.create).toHaveBeenCalledWith({
+      expect(mockRepository.create).toHaveBeenCalledWith({
         ...createTaskDto,
         completed: false
       });
-      expect(repository.save).toHaveBeenCalledWith({
+      expect(mockRepository.save).toHaveBeenCalledWith({
         ...createTaskDto,
         completed: false
       });
@@ -124,19 +127,19 @@ describe('TasksService', () => {
         text: 'Text 1'
       };
 
-      repository.create.mockReturnValue({
+      mockRepository.create.mockReturnValue({
         ...createTaskDto,
         completed: false
       });
 
-      repository.save.mockRejectedValue(new Error('Database down'));
+      mockRepository.save.mockRejectedValue(new Error('Database down'));
 
       await expect(tasksService.createTask(createTaskDto)).rejects.toThrow(InternalServerErrorException);
-      expect(repository.create).toHaveBeenCalledWith({
+      expect(mockRepository.create).toHaveBeenCalledWith({
         ...createTaskDto,
         completed: false
       });
-      expect(repository.save).toHaveBeenCalled();
+      expect(mockRepository.save).toHaveBeenCalled();
     });
   });
 
@@ -164,14 +167,14 @@ describe('TasksService', () => {
         updatedAt: new Date('2026-09-29T12:00:05Z')
       }
 
-      repository.findOneBy.mockResolvedValue(task);
+      mockRepository.findOneBy.mockResolvedValue(task);
 
-      repository.save.mockResolvedValue(updatedTask);
+      mockRepository.save.mockResolvedValue(updatedTask);
 
       const result:Task = await tasksService.updateTask(task.id, updateTaskDto);
 
-      expect(repository.findOneBy).toHaveBeenCalledWith({ id: 1 })
-      expect(repository.save).toHaveBeenCalledWith({
+      expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: 1 })
+      expect(mockRepository.save).toHaveBeenCalledWith({
         id: task.id,
         title: 'Title 1',
         text: 'Text 1',
@@ -187,11 +190,11 @@ describe('TasksService', () => {
         text: 'Text 2'
       };
 
-      repository.findOneBy.mockResolvedValue(task);
+      mockRepository.findOneBy.mockResolvedValue(task);
 
       await expect(tasksService.updateTask(1, updateTaskDto)).rejects.toThrow(NotFoundException);
-      expect(repository.findOneBy).toHaveBeenCalledWith({ id: 1 });
-      expect(repository.save).not.toHaveBeenCalled();
+      expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
+      expect(mockRepository.save).not.toHaveBeenCalled();
     });
   });
 
@@ -206,25 +209,25 @@ describe('TasksService', () => {
         updatedAt: new Date('2026-09-29T12:00:00Z')
       };
 
-      repository.findOneBy.mockResolvedValue(task);
+      mockRepository.findOneBy.mockResolvedValue(task);
 
-      repository.remove.mockResolvedValue(task);
+      mockRepository.remove.mockResolvedValue(task);
 
       const result:void = await tasksService.deleteTask(task.id);
 
-      expect(repository.findOneBy).toHaveBeenCalledWith({ id: 1 })
-      expect(repository.remove).toHaveBeenCalledWith(task);
+      expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: 1 })
+      expect(mockRepository.remove).toHaveBeenCalledWith(task);
       expect(result).toEqual(undefined);
     });
 
     it('It should throw an error if task is not found', async () => {
       const task = null;
       
-      repository.findOneBy.mockResolvedValue(task);
+      mockRepository.findOneBy.mockResolvedValue(task);
       
       await expect(tasksService.deleteTask(1)).rejects.toThrow(NotFoundException);
-      expect(repository.findOneBy).toHaveBeenCalledWith({ id: 1 })
-      expect(repository.remove).not.toHaveBeenCalled();
+      expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: 1 })
+      expect(mockRepository.remove).not.toHaveBeenCalled();
     });
   });
 });

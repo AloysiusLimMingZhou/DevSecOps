@@ -5,7 +5,9 @@ import { AppService } from './app.service.js';
 import { TasksModule } from './tasks/task.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Task } from './tasks/entity/task.entity.js';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { configSchema } from './config/configuration.js';
+import { LoggerMiddleware } from './common/middleware/logger.middleware.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -19,24 +21,32 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       serviceId: 'dev-sec-ops',
     }),
     TasksModule,
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: '',
-      password: '',
-      database: '',
-      entities: [Task],
-      synchronize: true
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.getOrThrow<string>('DB_HOST'),
+        port: config.getOrThrow<number>('DB_PORT'),
+        username: config.getOrThrow<string>('DB_USERNAME'),
+        password: config.getOrThrow<string>('DB_PASSWORD'),
+        database: config.getOrThrow<string>('DB_NAME'),
+        entities: [Task],
+        synchronize: true
+      })
     }),
 
     ConfigModule.forRoot({
       envFilePath: ['.env.test', '.env'],
       isGlobal: true,
+      validationSchema: configSchema
     })
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

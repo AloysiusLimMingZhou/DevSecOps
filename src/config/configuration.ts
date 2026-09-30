@@ -1,13 +1,17 @@
-import { ConfigService } from "@nestjs/config";
+import z from "zod";
 
-const configuration = () => ({
-    nodeEnv: process.env.NODE_ENV,
-    port: process.env.PORT,
-    dbHost: process.env.DB_HOST,
-    dbName: process.env.DB_NAME,
-    dbPort: process.env.DB_PORT,
-    dbUser: process.env.DB_USERNAME,
-    dbPass: process.env.DB_PASSWORD
-})
+export const configSchema = z.object({
+   NODE_ENV: z.enum(['development', 'test']).default('development'),
+   
+   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
 
-export default configuration;
+   DB_HOST: z.string().min(1),
+
+   DB_PORT: z.coerce.number().int().min(1).max(65535).default(5432),
+
+   DB_USERNAME: z.string().min(1),
+
+   DB_PASSWORD: z.string().min(1),
+
+   DB_NAME: z.string().min(1)
+});
