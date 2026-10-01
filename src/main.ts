@@ -3,7 +3,7 @@ import { AppModule, ObserveInstrument } from './app.module.js';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { LoggerMiddleware } from './common/middleware/logger.middleware.js';
 import { AllExceptionFilter } from './common/exception/all-exception-filter.js';
-import { VersioningType } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -15,6 +15,12 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI
   });
+
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true
+  }));
 
   app.useGlobalFilters(new AllExceptionFilter());
 
