@@ -15,11 +15,18 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "oxlint src/ test/",
+    
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:cov": "vitest run --coverage",
-    "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
+    "test:unit": "vitest run --config ./vitest.config.unit.ts",
+    "test:integration": "cross-env NODE_ENV=test vitest run --config ./vitest.config.integration.ts",
+    "test:e2e": "cross-env NODE_ENV=test vitest run --config ./vitest.config.e2e.ts",
+
+    "migration:generate": "typeorm-ts-node-esm migration:generate -d ./src/database/data-source.ts",
+    "migration:run": "typeorm-ts-node-esm migration:run -d ./src/database/data-source.ts",
+    "migration:revert": "typeorm-ts-node-esm migration:revert -d ./src/database/data-source.ts",
+    "migration:show": "typeorm-ts-node-esm migration:show -d ./src/database/data-source.ts",
+    "migration:create": "typeorm-ts-node-esm migration:create -d ./src/database/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -51,6 +58,7 @@
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
     "supertest": "^7.3.0",
+    "ts-node": "^10.9.2",
     "typescript": "^6.0.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.1.2"
