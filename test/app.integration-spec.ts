@@ -9,22 +9,22 @@ import { NotFoundException } from "@nestjs/common";
 import { configSchema } from "../src/config/configuration.js";
 
 describe('Tasks Integration Test', () => {
-    let tasksService: TasksService;
-    let moduleRef: TestingModule;
-    let tasksRepository: Repository<Task>;
+    let tasksService: TasksService; // Declare TaskService
+    let moduleRef: TestingModule; // Declare TestingModule for setting up our app module as mock module
+    let tasksRepository: Repository<Task>; // Declare our actual repository which connects between service & database
 
-    beforeAll(async () => {
-        if(process.env.NODE_ENV !== 'test'){
+    beforeAll(async () => { // Before all test starts set up mock module first
+        if(process.env.NODE_ENV !== 'test'){ // Fetch NODE_ENV from npm, if its not test somehow throw error and stop testing & messing with prod/dev database
            throw new Error('E2E test must run with NODE_ENV=test');
         }
-        moduleRef = await Test.createTestingModule({
+        moduleRef = await Test.createTestingModule({ // Create Mock Module that resembles same as actual AppModule
             imports: [
-                ConfigModule.forRoot({
+                ConfigModule.forRoot({ // List only .env.test so that NestJS/Config only uses .env.test config
                     envFilePath: '.env.test',
                     isGlobal: true,
-                    validationSchema: configSchema
+                    validationSchema: configSchema // Use Zod Schema earlier for validating config type
                 }),
-                TypeOrmModule.forRootAsync({
+                TypeOrmModule.forRootAsync({ // Setting up TypeORM for database later
                     inject: [ConfigService],
                     useFactory: (config: ConfigService) => ({
                         type: 'postgres',
@@ -35,7 +35,7 @@ describe('Tasks Integration Test', () => {
                         database: config.getOrThrow<string>('DB_NAME'),
                         entities: [Task],
                         synchronize: false,
-                        dropSchema: false
+                        dropSchema: false // Make sure existing database tables are not deleted
                     })
                 }),
                 TasksModule
@@ -43,18 +43,18 @@ describe('Tasks Integration Test', () => {
         }).compile();
 
         tasksService = moduleRef.get<TasksService>(TasksService);
-        tasksRepository = moduleRef.get<Repository<Task>>(getRepositoryToken(Task));
+        tasksRepository = moduleRef.get<Repository<Task>>(getRepositoryToken(Task)); // Get Repository Token with Task Entity so that it persists even after typescript compilation
     });
 
     beforeEach(async () => {
-        await tasksRepository.clear();
+        await tasksRepository.clear(); // Before each test, clear all data records in testing db
     });
 
     afterAll(async () => {
-        await moduleRef.close();   
+        await moduleRef.close(); // After all tests done, close the mock module aka close the app
     });
 
-    describe('getAllTasks', () => {
+    describe('getAllTasks', () => { // Test GetAllTask() function. In integration test, we run the actual flow of how our app logic would work internally, without calling the API route yet. That's for e2e. But integration test use real db so no mock repository or service
         it('It get all tasks normally', async () => {
             const task1:Task = await tasksService.createTask({
                 title: 'Title 1',
@@ -68,8 +68,8 @@ describe('Tasks Integration Test', () => {
 
             const fetchedTasks: Task[] = await tasksService.getAllTasks();
 
-            expect(fetchedTasks).toHaveLength(2);
-            expect(fetchedTasks).toEqual(
+            expect(fetchedTasks).toHaveLength(2); // Since we have 2 data entries array length is 2
+            expect(fetchedTasks).toEqual( // Go through the array objects and see if it resembles with the 2 data above
                 expect.arrayContaining([
                     expect.objectContaining({
                         id: task1.id,
@@ -88,7 +88,7 @@ describe('Tasks Integration Test', () => {
             );
         });
 
-        it('Expect return none if no tasks found', async () => {
+        it('Expect return none if no tasks found', async () => { // Return no results if no task is found
             const tasks = await tasksService.getAllTasks();
             expect(tasks).toHaveLength(0);
         });

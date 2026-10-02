@@ -24,7 +24,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       })
     }),
     TasksModule,
-    TypeOrmModule.forRootAsync({
+    TypeOrmModule.forRootAsync({ // Setup Config for Postgres database
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
@@ -34,14 +34,15 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         password: config.getOrThrow<string>('DB_PASSWORD'),
         database: config.getOrThrow<string>('DB_NAME'),
         entities: [Task],
-        synchronize: false
+        synchronize: false // Make sure typeorm doesnt change database when entity changes, but follow migration as source of truth. 
+                          // Reason for using migration is because of logs. If typeorm change database when entity changes, its hard to check what has been changed and which version it is, and the data inside database might be broken
       })
     }),
 
-    ConfigModule.forRoot({
-      envFilePath: ['.env', '.env.test'],
-      isGlobal: true,
-      validationSchema: configSchema
+    ConfigModule.forRoot({ // Setup configuration
+      envFilePath: ['.env', '.env.test'], // default .env, fallback use .env.test for testing database
+      isGlobal: true, // Set config to global so other module doesnt have to import ConfigModule and can directly call ConfigService
+      validationSchema: configSchema // Follow Zod Schema listed in configSchema
     })
   ],
   controllers: [AppController],
@@ -50,6 +51,6 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(LoggerMiddleware).forRoutes('*'); // Apply our custom Logger Middleware at all routes
   }
 }
