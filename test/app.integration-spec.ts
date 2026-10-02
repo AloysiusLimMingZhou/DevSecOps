@@ -7,7 +7,6 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TasksModule } from "../src/tasks/task.module.js";
 import { NotFoundException } from "@nestjs/common";
 import { configSchema } from "../src/config/configuration.js";
-import { title } from "process";
 
 describe('Tasks Integration Test', () => {
     let tasksService: TasksService;
@@ -21,7 +20,7 @@ describe('Tasks Integration Test', () => {
         moduleRef = await Test.createTestingModule({
             imports: [
                 ConfigModule.forRoot({
-                    envFilePath: ['.env.test', '.env'],
+                    envFilePath: '.env.test',
                     isGlobal: true,
                     validationSchema: configSchema
                 }),
