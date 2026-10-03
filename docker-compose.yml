@@ -1,0 +1,70 @@
+# Define container service
+# For database, include the following:
+# 1. image: postgres:17-alpine, postgres 17 latest & alpine OS
+# 2. environment: db config set earlier
+# 3. ports: Use 5433:5432 as Windows default 5432 is reserved
+# 4. volumes: Use default postgres_data:/var/lib/postgresql/data
+# 5. healthcheck: The command is spawn command shell, then run command pg_isready -U username -d db name. Include interval time, time till timeout, max retries
+
+# For API, include the following:
+# 1. Build. Point towards this root dir & use the dockerfile set up earlier
+# 2. environment: refer to API config
+# 3. ports: 3000:3000
+# 4. depends on: only run if db is healthy as condition
+# 5. commands: sh -c npm run migration:run && npm run start
+# 6. healthcheck: time interval 10s, timeout 3s, max retries is 5
+
+# Volume: use postgres_data set earlier
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    
+    environment:
+      DB_USER: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    
+    ports:
+      - 5433: 5432
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist data so even if container die data still persist
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres # Use service name postgres
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      APP_KEY: ${APP_KEY}
+      APP_SECRET: ${APP_SECRET}
+    
+    ports:
+      - 3000:3000
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+    
+    command: ["sh", "-c", "npm run migration:run && npm run start"]
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch(http://localhost:3000/health).then(r => { if(!r.ok) process.exit(1) }).catch(() => process.exit(1))"] # -e means execute js code directly via nodejs, then check if API health is good, if good then ok, false stop process
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s

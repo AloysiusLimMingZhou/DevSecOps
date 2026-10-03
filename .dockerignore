@@ -1,0 +1,29 @@
+# Docker ignore all these files while building the container. Most are unnecessary large files that can reduce container size or secrets.
+
+# Compiled outputs
+node_modules
+dist
+build
+
+# Git details
+.git
+.gitignore
+
+# Secrets, only .env.example is skipped
+.env
+.env.*
+*.env.*
+!.env.example
+
+# Logs
+logs
+*.logs
+
+# IDEs
+.vscode/*
+.idea
+
+# READMEs
+README.md
+
+tsconfig.build.tsbuildinfo
