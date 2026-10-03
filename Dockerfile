@@ -7,11 +7,11 @@ FROM node:24-alpine as DEPS
 WORKDIR /app
 
 # Copy package.json files into the dir above
-COPY package.json ./
+COPY package*.json ./
 
 # Perform npm run first so that nodejs load package.json and generate package-lock.json to install the dependencies. Afterwards it saves the npm cache instead of running npm run every time
 # Hint: run npm CI so that nodejs specifically use package-lock.json
-RUN npm run ci
+RUN npm ci
 
 # 2. Build Stage: After dependencies are installed via npm, time to build the system with nestjs
 FROM DEPS as BUILDER
@@ -30,8 +30,8 @@ FROM BUILDER as TEST
 # Set NODE_ENV environment variable to be test so use testing database
 ENV NODE_ENV=test
 
-# Set command to run unit tests, for our case its npm test:unit
-CMD [ "npm", "test:unit" ]
+# Set command to run unit tests, for our case its npm run test:unit
+CMD [ "npm", "run", "test:unit" ]
 
 # 4. Runtime Stage
 # Start everything from scratch by rebuilding an image
@@ -44,13 +44,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Copy package.json files into the dir
-COPY package.json ./
+COPY package*.json ./
 
 # Run npm CI install, --omit=dev to skip dev-dependencies from package-lock.json then remove all npm cache 
-RUN npm run ci --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy all the built files from NestJS during builder stage to here, then take compiled js dist folder and set it as ./dist, then set privs as user node & group node with chmod
-COPY --chown=node:node /app/dist ./dist
+COPY --from=BUILDER --chown=node:node /app/dist ./dist
 
 # Set user as node user for least privileges practice
 USER node

@@ -21,9 +21,9 @@ services:
     image: postgres:17-alpine
     
     environment:
-      DB_USER: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_NAME: ${DB_NAME}
     
     ports:
       - 5433: 5432
@@ -37,6 +37,26 @@ services:
       timeout: 10s
       retries: 10
 
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: postgres # Use service name postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    
+    command: ["npm", "run", "migration:run:prod"]
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build: 
       context: .
@@ -46,8 +66,8 @@ services:
       NODE_ENV: production
       PORT: 3000
       DB_HOST: postgres # Use service name postgres
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USERNAME}
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       APP_KEY: ${APP_KEY}
@@ -57,14 +77,17 @@ services:
       - 3000:3000
     
     depends_on:
-      postgres:
-        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
     
-    command: ["sh", "-c", "npm run migration:run && npm run start"]
+    command: ["sh", "-c", "npm run migration:run:prod && npm run start:prod"]
 
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch(http://localhost:3000/health).then(r => { if(!r.ok) process.exit(1) }).catch(() => process.exit(1))"] # -e means execute js code directly via nodejs, then check if API health is good, if good then ok, false stop process
+      test: ["CMD", "node", "-e", "fetch(;http://localhost:3000/api/v1/health').then(r => { if(!r.ok) process.exit(1) }).catch(() => process.exit(1))"] # -e means execute js code directly via nodejs, then check if API health is good, if good then ok, false stop process
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 10s
+
+volumes:
+  postgres_data:
