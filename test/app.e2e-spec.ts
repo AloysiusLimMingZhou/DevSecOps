@@ -48,7 +48,7 @@ describe('AppController (e2e)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   describe('/api/v1/task/ (GET)', () => {

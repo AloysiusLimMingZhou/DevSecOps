@@ -40,7 +40,11 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     }),
 
     ConfigModule.forRoot({ // Setup configuration
-      envFilePath: ['.env', '.env.test'], // default .env, fallback use .env.test for testing database
+      envFilePath:  // default .env, fallback use .env.test for testing database
+        process.env.NODE_ENV === 'test'
+          ? '.env.test'
+          : '.env',
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
       isGlobal: true, // Set config to global so other module doesnt have to import ConfigModule and can directly call ConfigService
       validationSchema: configSchema // Follow Zod Schema listed in configSchema
     })

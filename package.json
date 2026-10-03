@@ -19,17 +19,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run --config ./vitest.config.unit.ts",
-    "test:integration": "cross-env NODE_ENV=test vitest run --config ./vitest.config.integration.ts",
-    "test:e2e": "cross-env NODE_ENV=test vitest run --config ./vitest.config.e2e.ts",
+    "test:integration": "npx cross-env NODE_ENV=test vitest run --config ./vitest.config.integration.ts",
+    "test:e2e": "npx cross-env NODE_ENV=test vitest run --config ./vitest.config.e2e.ts",
 
     "migration:generate": "typeorm-ts-node-esm migration:generate -d ./src/database/data-source.ts",
     "migration:run": "typeorm-ts-node-esm migration:run -d ./src/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-esm migration:revert -d ./src/database/data-source.ts",
     "migration:show": "typeorm-ts-node-esm migration:show -d ./src/database/data-source.ts",
-    "migration:create": "typeorm-ts-node-esm migration:create -d ./src/database/data-source.ts",
+    "migration:create": "typeorm-ts-node-esm migration:create",
 
     "migration:run:prod": "typeorm migration:run -d dist/database/data-source.js",
-    "migration:show:prod": "typeorm migration:run -d dist/database/data-source.js"
+    "migration:show:prod": "typeorm migration:show -d dist/database/data-source.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

@@ -1,7 +1,7 @@
 # 1. Dependency Stage: Get all the dependencies aka libraries & etc required from the current nestjs source code
 
 # Build Image, use Alpine Linux OS for thinnest size, with nodejs 24 as latest runtime
-FROM node:24-alpine as DEPS
+FROM node:24-alpine AS deps
 
 # Mkdir folder for container to move source code files & execute
 WORKDIR /app
@@ -14,18 +14,17 @@ COPY package*.json ./
 RUN npm ci
 
 # 2. Build Stage: After dependencies are installed via npm, time to build the system with nestjs
-FROM DEPS as BUILDER
+FROM deps AS builder
 
 # Copy entire source code files from root folder into current app folder
 COPY . .
 
 # Execute nest build command using npm run build shorthand command from package.json
-# After running nest build, it will understand and build the file dependencies graph between the modules, routes & service using nestjs. This is also how DI from nestjs is build
-# nest build also compile ts code into js under ./dist
+# After running nest build, it will compile ts code into js under ./dist
 RUN npm run build
 
 # 3. Test Stage
-FROM BUILDER as TEST
+FROM builder AS test
 
 # Set NODE_ENV environment variable to be test so use testing database
 ENV NODE_ENV=test
@@ -35,7 +34,7 @@ CMD [ "npm", "run", "test:unit" ]
 
 # 4. Runtime Stage
 # Start everything from scratch by rebuilding an image
-FROM node:24-alpine as RUNTIME
+FROM node:24-alpine AS runtime
 
 # Recreate a new directory
 WORKDIR /app

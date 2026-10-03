@@ -92,13 +92,10 @@ describe('TasksService', () => {
         text: 'Text 1'
       };
 
-      const createdTask:Task = {
-        id: 1,
+      const createdTask = {
         title: 'Title 1',
         text: 'Text 1',
-        completed: false,
-        createdAt: new Date('2026-09-29T12:00:00Z'),
-        updatedAt: new Date('2026-09-29T12:00:00Z')
+        completed: false
       }
 
       mockRepository.create.mockReturnValue({
@@ -145,37 +142,30 @@ describe('TasksService', () => {
 
   describe('updateTask', () => {
     it('It should update a task', async () => {
-      const task:Task = {
-        id: 1,
+      const task = {
         title: 'Title 1',
         text: 'Text 1',
         completed: false,
-        createdAt: new Date('2026-09-29T12:00:00Z'),
-        updatedAt: new Date('2026-09-29T12:00:00Z')
       };
 
       const updateTaskDto:UpdateTaskDto = {
         completed: true
       };
 
-      const updatedTask:Task = {
-        id: 1,
+      const updatedTask = {
         title: 'Title 1',
         text: 'Text 1',
-        completed: true,
-        createdAt: new Date('2026-09-29T12:00:00Z'),
-        updatedAt: new Date('2026-09-29T12:00:05Z')
+        completed: true
       }
 
       mockRepository.findOneBy.mockResolvedValue(task);
 
       mockRepository.save.mockResolvedValue(updatedTask);
 
-      const result:Task = await tasksService.updateTask(task.id, updateTaskDto);
+      const result:Task = await tasksService.updateTask(1, updateTaskDto);
 
       expect(mockRepository.findOneBy).toHaveBeenCalledWith({ id: 1 })
       expect(mockRepository.save).toHaveBeenCalledWith({
-        id: task.id,
         title: 'Title 1',
         text: 'Text 1',
         completed: true

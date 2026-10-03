@@ -23,10 +23,10 @@ services:
     environment:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_NAME: ${DB_NAME}
+      POSTGRES_DB: ${DB_NAME}
     
     ports:
-      - 5433: 5432
+      - "5433:5432"
     
     volumes:
       - postgres_data:/var/lib/postgresql/data # Persist data so even if container die data still persist
@@ -74,16 +74,16 @@ services:
       APP_SECRET: ${APP_SECRET}
     
     ports:
-      - 3000:3000
+      - "3000:3000"
     
     depends_on:
-      migration:
+      migrate:
         condition: service_completed_successfully
     
-    command: ["sh", "-c", "npm run migration:run:prod && npm run start:prod"]
+    command: ["sh", "-c", "npm run start:prod"]
 
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch(;http://localhost:3000/api/v1/health').then(r => { if(!r.ok) process.exit(1) }).catch(() => process.exit(1))"] # -e means execute js code directly via nodejs, then check if API health is good, if good then ok, false stop process
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/v1/health').then(r => { if(!r.ok) process.exit(1) }).catch(() => process.exit(1))"] # -e means execute js code directly via nodejs, then check if API health is good, if good then ok, false stop process
       interval: 30s
       timeout: 10s
       retries: 5
