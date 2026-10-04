@@ -38,6 +38,8 @@ jobs:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_NAME: devsecops_test
+      APP_KEY: ${{ secrets.APP_KEY }}
+      APP_SECRET: ${{ secrets.APP_SECRET }}
 
     steps:
       - uses: actions/checkout@v7
