@@ -1,0 +1,70 @@
+name: CI Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+  
+    services:
+      postgres:
+        image: postgres:17-alpine
+
+        env:
+          POSTGRES_USER: ${{ secrets.DB_USERNAME }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DB_NAME }}
+        
+        ports: 
+          - 5432:5432
+
+        options: >-
+          --health-cmd="pg_isready -U ${{ secrets.DB_USERNAME }} -d ${{ secrets.DB_NAME }}"
+          --health-interval: 30s
+          --health-timeout: 10s
+          --health-retries: 10
+        
+      env:
+        NODE_ENV: test
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+
+      steps:
+        - uses: actions/checkout@v7
+
+        - name: Setup Node
+          uses: actions/setup-node@v7
+          with:
+            node-version: '24'
+            cache: 'npm'
+        
+        - name: Run npm install by referring package-lock.json
+          run: npm ci
+        
+        - name: Lint Test
+          run: npm run lint
+        
+        - name: Unit Test
+          run: npm run test:unit
+        
+        - name: Run database migration
+          run: npm run migration:run
+        
+        - name: Integration Test
+          run: npm run test:integration
+        
+        - name: E2E Test
+          run: npm run test:e2e
+        
+        - name: NestJS Build
+          run: npm run build
