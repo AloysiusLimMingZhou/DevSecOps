@@ -1,0 +1,12 @@
+name: Code Scanning Test
+
+on:
+    push:
+        branches: ["main"]
+
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    security_test:
+        runs-on: ubuntu-latest
