@@ -12,9 +12,9 @@ updates:
   - package-ecosystem: "docker"
     directory: "/" # Look for dockerfile in root directory
     schedule:
-      interval: "daily" # Scan everyday
+      interval: "weekly" # Scan everyday
 
   - package-ecosystem: "github-actions"
     directory: "/" # Look for .github/workflows in root directory
     schedule:
-      interval: "daily" # Scan everyday
+      interval: "weekly" # Scan everyday
