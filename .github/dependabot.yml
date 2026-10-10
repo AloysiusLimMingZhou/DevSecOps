@@ -1,0 +1,20 @@
+# Basic Dependabot yaml file for configuring dependencies & package managers
+# Package Managers: npm
+# Dependencies: npm, docker, github-actions
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/" # Look for package*.json files in root directory
+    schedule:
+      interval: "daily" # Scan everyday
+
+  - package-ecosystem: "docker"
+    directory: "/" # Look for dockerfile in root directory
+    schedule:
+      interval: "daily" # Scan everyday
+
+  - package-ecosystem: "github-actions"
+    directory: "/" # Look for .github/workflows in root directory
+    schedule:
+      interval: "daily" # Scan everyday
