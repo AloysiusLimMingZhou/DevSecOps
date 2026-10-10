@@ -1,12 +1,38 @@
-name: Code Scanning Test
+name: CodeQL Test
 
 on:
-    push:
-        branches: ["main"]
+  push:
+    branches: [main]
 
-    pull_request:
-        branches: ["main"]
+  pull_request:
+    branches: [main]
+    
+  schedule:
+    - cron: '00 00 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
-    security_test:
-        runs-on: ubuntu-latest
+  analyze:
+    name: Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Initialize CodeQL Action
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          dependency-caching: true
+      
+      - name: Run CodeQL analysis
+        uses: github/codeql-action/analyze@v4
+        
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
