@@ -1,0 +1,24 @@
+name: GitLeak Scan
+
+on:
+  push:
+    branches: [main]
+
+  pull_request:
+    branches: [main]
+  
+  schedule:
+  - cron: "00 00 * * *"
+
+jobs:
+  scan:
+    name: GitLeak
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+    
+      - name: Run Gitleak Scan
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
