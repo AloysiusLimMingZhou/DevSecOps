@@ -1,0 +1,77 @@
+name: Trivy CI Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  content: read
+  security-events: write
+
+jobs:
+  image-scan:
+    name: Trivy Container Image Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Build image from DockerFile
+        run: docker build -t docker.io/my-organization/my-app:${{ github.sha }}
+      
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'image'
+          image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
+          format: sarif
+          output: trivy-image-report.sarif
+          vuln-type: 'os,library'
+
+      - name: Fail build on Critical/High Vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
+          format: json
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+          skip-setup-trivy: true
+
+      - name: Upload Trivy Vulnerability Scan Result to Github Security Tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-image-results.sarif'
+  
+  repo-scan:
+    name: Trivy Github Repo Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+      
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'fs'
+          scan-ref: .
+          format: sarif
+          vuln-type: 'os,library'
+          output: trivy-github-repo-report.sarif
+      
+      - name: Fail Build on Critical/High Vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-ref: .
+          format: json
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+          skip-setup-trivy: true
+
+      - name: Upload Trivy Github Repo Report to Github Security Tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-github-repo-results.sarif'
