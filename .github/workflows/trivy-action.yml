@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  content: read
+  contents: read
   security-events: write
 
 jobs:
