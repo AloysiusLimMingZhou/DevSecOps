@@ -1,7 +1,7 @@
 # 1. Dependency Stage: Get all the dependencies aka libraries & etc required from the current nestjs source code
 
 # Build Image, use Alpine Linux OS for thinnest size, with nodejs 24 as latest runtime
-FROM node:24-alpine AS deps
+FROM node:26-alpine AS deps
 
 # Mkdir folder for container to move source code files & execute
 WORKDIR /app
@@ -34,7 +34,7 @@ CMD [ "npm", "run", "test:unit" ]
 
 # 4. Runtime Stage
 # Start everything from scratch by rebuilding an image
-FROM node:24-alpine AS runtime
+FROM node:26-alpine AS runtime
 
 # Recreate a new directory
 WORKDIR /app
