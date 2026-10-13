@@ -48,6 +48,9 @@ COPY package*.json ./
 # Run npm CI install, --omit=dev to skip dev-dependencies from package-lock.json then remove all npm cache 
 RUN npm ci --omit=dev && npm cache clean --force
 
+# Remove npm from runtime to reduce vulnerability from package manager. npm has installed everything we need in build phase so its ok
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+
 # Copy all the built files from NestJS during builder stage to here, then take compiled js dist folder and set it as ./dist, then set privs as user node & group node with chmod
 COPY --from=BUILDER --chown=node:node /app/dist ./dist
 

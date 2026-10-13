@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Build image from DockerFile
-        run: docker build -t docker.io/my-organization/my-app:${{ github.sha }}
+        run: docker build -t docker.io/my-organization/my-app:${{ github.sha }} .
       
       - name: Run Trivy Vulnerability Scanner
         uses: aquasecurity/trivy-action@v0.36.0
@@ -30,20 +30,21 @@ jobs:
           output: trivy-image-report.sarif
           vuln-type: 'os,library'
 
+      - name: Upload Trivy Vulnerability Scan Result to Github Security Tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-image-report.sarif'
+
       - name: Fail build on Critical/High Vulnerabilities
         uses: aquasecurity/trivy-action@v0.36.0
         with:
+          scan-type: 'image'
           image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
-          format: json
+          format: table
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: 1
           skip-setup-trivy: true
-
-      - name: Upload Trivy Vulnerability Scan Result to Github Security Tab
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: 'trivy-image-results.sarif'
   
   repo-scan:
     name: Trivy Github Repo Scan
@@ -60,18 +61,19 @@ jobs:
           format: sarif
           vuln-type: 'os,library'
           output: trivy-github-repo-report.sarif
-      
-      - name: Fail Build on Critical/High Vulnerabilities
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-ref: .
-          format: json
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: 1
-          skip-setup-trivy: true
 
       - name: Upload Trivy Github Repo Report to Github Security Tab
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: 'trivy-github-repo-results.sarif'
+          sarif_file: 'trivy-github-repo-report.sarif'
+          
+      - name: Fail Build on Critical/High Vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'fs'
+          scan-ref: .
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+          skip-setup-trivy: true
