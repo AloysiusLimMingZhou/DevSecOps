@@ -51,7 +51,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
     
-    command: ["npm", "run", "migration:run:prod"]
+    command: ["node", "./node_modules/typeorm/cli", "migration:run", "-d", "dist/database/data-source.js"]
 
     depends_on:
       postgres:
@@ -80,8 +80,6 @@ services:
       migrate:
         condition: service_completed_successfully
     
-    command: ["sh", "-c", "npm run start:prod"]
-
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/v1/health').then(r => { if(!r.ok) process.exit(1) }).catch(() => process.exit(1))"] # -e means execute js code directly via nodejs, then check if API health is good, if good then ok, false stop process
       interval: 30s
