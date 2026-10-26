@@ -81,7 +81,7 @@ jobs:
           scan-type: 'fs'
           scan-ref: .
           format: 'cyclonedx'
-          output: github-repo-report.cdx.json
+          output: trivy-repo-report.cdx.json
           vuln-type: 'os,library'
 
       - name: Upload Repo SBOM as Github Artifacts
