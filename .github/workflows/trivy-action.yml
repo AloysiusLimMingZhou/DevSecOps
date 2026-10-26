@@ -27,7 +27,6 @@ jobs:
           context: .
           load: true
           tags: devsecops:api
-          outputs: type=docker,dest=${{  runner.temp  }}/image.tar
       
       - name: Upload Image Artifact
         uses: actions/upload-artifact@v4
