@@ -21,19 +21,23 @@ jobs:
       - name: Build image from DockerFile
         run: docker build -t docker.io/my-organization/my-app:${{ github.sha }} .
       
-      - name: Run Trivy Vulnerability Scanner
+      - name: Scan Image Vulnerability & Generate SBOM
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'image'
           image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
-          format: sarif
-          output: trivy-image-report.sarif
-          vuln-type: 'os,library'
+          format: 'github'
+          output: 'image-artifact.sbom.json'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
+          severity: 'HIGH,CRITICAL'
+          scanners: 'vuln'
 
-      - name: Upload Trivy Vulnerability Scan Result to Github Security Tab
-        uses: github/codeql-action/upload-sarif@v4
+      - name: Upload SBOM as Github Artifacts
+        uses: actions/upload-artifact@v7
         with:
-          sarif_file: 'trivy-image-report.sarif'
+          name: 'trivy-sbom-report'
+          path: '${{ github.workspace }}/image-artifact.sbom.json'
+          retention-days: 30
 
       - name: Fail build on Critical/High Vulnerabilities
         uses: aquasecurity/trivy-action@v0.36.0
@@ -45,7 +49,7 @@ jobs:
           ignore-unfixed: true
           exit-code: 1
           skip-setup-trivy: true
-  
+
   repo-scan:
     name: Trivy Github Repo Scan
     runs-on: ubuntu-latest
@@ -53,19 +57,22 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v7
       
-      - name: Run Trivy Vulnerability Scanner
+      - name: Run Trivy Vulnerability Scanner & Generate SBOM
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'fs'
           scan-ref: .
-          format: sarif
+          format: 'github'
+          github-pat: ${{  secrets.GITHUB_TOKEN  }}
           vuln-type: 'os,library'
-          output: trivy-github-repo-report.sarif
+          output: trivy-github-repo-report.sbom.json
 
-      - name: Upload Trivy Github Repo Report to Github Security Tab
-        uses: github/codeql-action/upload-sarif@v4
+      - name: Upload trivy report as Github Artifacts
+        uses: actions/upload-artifact@v7
         with:
-          sarif_file: 'trivy-github-repo-report.sarif'
+          name: 'trivy-sbom-report'
+          path: '${{  github.workspace  }}/trivy-github-repo-report.sbom.json'
+          retention-days: 20
           
       - name: Fail Build on Critical/High Vulnerabilities
         uses: aquasecurity/trivy-action@v0.36.0
