@@ -34,7 +34,7 @@ jobs:
           scan-type: 'image'
           image-ref: 'devsecops:api'
           format: 'cyclonedx'
-          output: 'image-artifact.cdx.json'
+          output: 'trivy-image-artifact.cdx.json'
           severity: 'HIGH,CRITICAL'
           scanners: 'vuln'
 
