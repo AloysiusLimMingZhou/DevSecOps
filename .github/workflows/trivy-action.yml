@@ -35,7 +35,7 @@ jobs:
       - name: Upload SBOM as Github Artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: 'trivy-sbom-report'
+          name: 'trivy-image-sbom'
           path: '${{ github.workspace }}/image-artifact.sbom.json'
           retention-days: 30
 
@@ -70,7 +70,7 @@ jobs:
       - name: Upload trivy report as Github Artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: 'trivy-sbom-report'
+          name: 'trivy-repo-sbom'
           path: '${{  github.workspace  }}/trivy-github-repo-report.sbom.json'
           retention-days: 20
           
