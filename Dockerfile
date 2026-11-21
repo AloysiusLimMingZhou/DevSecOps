@@ -54,6 +54,9 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 # Copy all the built files from NestJS during builder stage to here, then take compiled js dist folder and set it as ./dist, then set privs as user node & group node with chmod
 COPY --from=BUILDER --chown=node:node /app/dist ./dist
 
+# Copy RDS Certificate Bundle for AWS
+COPY --chown=node:node certs/us-east-1-bundle.pem ./certs/us-east-1-bundle.pem
+
 # Set user as node user for least privileges practice
 USER node
 

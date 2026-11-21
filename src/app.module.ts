@@ -8,6 +8,7 @@ import { Task } from './tasks/entity/task.entity.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configSchema } from './config/configuration.js';
 import { LoggerMiddleware } from './common/middleware/logger.middleware.js';
+import { readFileSync } from 'node:fs';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -33,6 +34,12 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         username: config.getOrThrow<string>('DB_USERNAME'),
         password: config.getOrThrow<string>('DB_PASSWORD'),
         database: config.getOrThrow<string>('DB_NAME'),
+
+        ssl: {
+          ca: readFileSync('/app/certs/us-east-1-bundle.pem', 'utf-8'),
+          rejectUnauthorized: true
+        },
+
         entities: [Task],
         synchronize: false // Make sure typeorm doesnt change database when entity changes, but follow migration as source of truth. 
                           // Reason for using migration is because of logs. If typeorm change database when entity changes, its hard to check what has been changed and which version it is, and the data inside database might be broken
