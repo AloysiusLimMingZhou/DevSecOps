@@ -4,7 +4,8 @@ import { Task } from "../tasks/entity/task.entity.js";
 import { configSchema } from "../config/configuration.js";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-import {  readFileSync  } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { resolve } from "node:path";
 
 const environmentType:string = process.env.NODE_ENV ?? 'development'; // Fetch the node environment type .env, by default set as dev
 
@@ -27,10 +28,12 @@ export default new DataSource({ // Config database details into DataSource, whic
     password: env.DB_PASSWORD,
     database: env.DB_NAME,
 
-    ssl:{
-        ca: readFileSync('/app/certs/us-east-1-bundled.pem', 'utf-8'),
-        rejectUnauthorized: true
-    },
+    ssl: env.NODE_ENV === 'production' 
+        ?   {
+                ca: readFileSync(resolve(process.cwd(), 'certs/us-east-1-bundle.pem'), 'utf-8'),
+                rejectUnauthorized: true
+            }
+        :   false,
 
     entities: [Task],
     
