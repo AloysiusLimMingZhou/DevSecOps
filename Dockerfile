@@ -16,6 +16,9 @@ RUN npm ci
 # 2. Build Stage: After dependencies are installed via npm, time to build the system with nestjs
 FROM deps AS builder
 
+# Upgrade installed Alpine packages every new push
+RUN apk upgrade --no-cache
+
 # Copy entire source code files from root folder into current app folder
 COPY . .
 
@@ -39,6 +42,9 @@ FROM node:24-alpine AS runtime
 # Recreate a new directory
 WORKDIR /app
 
+# Upgrade OS packages every new push
+RUN apk upgrade --no-cache
+
 # Set NODE_ENV environment variable to be prod so use actual database
 ENV NODE_ENV=production
 
@@ -52,7 +58,7 @@ RUN npm ci --omit=dev && npm cache clean --force
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Copy all the built files from NestJS during builder stage to here, then take compiled js dist folder and set it as ./dist, then set privs as user node & group node with chmod
-COPY --from=BUILDER --chown=node:node /app/dist ./dist
+COPY --from=builder --chown=node:node /app/dist ./dist
 
 # Copy RDS Certificate Bundle for AWS
 COPY --chown=node:node certs/us-east-1-bundle.pem ./certs/us-east-1-bundle.pem
